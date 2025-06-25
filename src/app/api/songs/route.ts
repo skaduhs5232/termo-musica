@@ -66,7 +66,7 @@ async function fetchArtistSongs(artistName: string): Promise<DeezerTrack[]> {
     }
 
     // Encontrar o artista correto (primeira correspondência mais próxima)
-    const targetArtist = artistData.data.find((artist: any) => 
+    const targetArtist = artistData.data.find((artist: { id: number; name: string }) => 
       artist.name.toLowerCase().includes(artistName.toLowerCase()) ||
       artistName.toLowerCase().includes(artist.name.toLowerCase())
     ) || artistData.data[0];
