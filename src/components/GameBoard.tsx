@@ -19,22 +19,20 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const cellRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Sincronizar apenas quando realmente necessário
+  // Sincronizar apenas em caso de reset/novo jogo
   useEffect(() => {
-    // Só atualiza quando currentGuess muda externamente (novo jogo, reset, etc)
-    // e não há célula ativa sendo editada
-    if (focusedIndex === null && currentGuess !== internalGuess) {
-      setInternalGuess(currentGuess);
+    // Detectar reset quando currentGuess está vazio
+    if (currentGuess === '') {
+      setInternalGuess('');
       
-      // Atualizar os valores dos inputs respeitando as posições
-      const currentArray = currentGuess.split('');
+      // Limpar todos os inputs
       for (let i = 0; i < targetLength; i++) {
         if (cellRefs.current[i]) {
-          cellRefs.current[i]!.value = currentArray[i] || '';
+          cellRefs.current[i]!.value = '';
         }
       }
     }
-  }, [currentGuess, focusedIndex, targetLength, internalGuess]);
+  }, [currentGuess, targetLength]);
 
   // Criar array de tentativas preenchido com vazios
   const allAttempts = [...attempts];
@@ -71,32 +69,37 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
       value = cleanValue;
     }
 
-    // Força o valor no input para garantir que não seja sobrescrito
-    input.value = value;
-
-    const newGuess = internalGuess.split("");
-
-    // Garantir que temos o tamanho correto do array
-    while (newGuess.length < targetLength) {
-      newGuess.push("");
+    // Atualizar apenas se o valor mudou para evitar duplicação
+    if (input.value !== value) {
+      input.value = value;
     }
 
-    // Atualizar a posição específica
-    newGuess[index] = value;
+    // Construir o novo guess baseado nos valores atuais de TODOS os inputs
+    // Usar setTimeout para garantir que todos os inputs tenham seus valores atualizados
+    setTimeout(() => {
+      const newGuessArray = [];
+      for (let i = 0; i < targetLength; i++) {
+        if (cellRefs.current[i]) {
+          newGuessArray[i] = cellRefs.current[i]!.value || '';
+        } else {
+          newGuessArray[i] = '';
+        }
+      }
 
-    const finalGuess = newGuess.join("").slice(0, targetLength);
-    setInternalGuess(finalGuess);
+      const finalGuess = newGuessArray.join('');
+      setInternalGuess(finalGuess);
 
-    if (onGuessChange) {
-      onGuessChange(finalGuess);
-    }
+      // Notificar o componente pai sobre a mudança
+      if (onGuessChange) {
+        onGuessChange(finalGuess);
+      }
+    }, 0);
 
     // Mover para próxima célula se digitou uma letra e não é a última célula
     if (value && index < targetLength - 1) {
-      // Usar requestAnimationFrame para garantir que a atualização visual aconteça primeiro
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         cellRefs.current[index + 1]?.focus();
-      });
+      }, 10);
     }
   };
 
@@ -111,30 +114,37 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
 
     if (!pastedText) return;
 
-    const newGuess = internalGuess.split("");
-
-    // Garantir que temos o tamanho correto do array
-    while (newGuess.length < targetLength) {
-      newGuess.push("");
-    }
-
-    // Preencher a partir da posição atual
+    // Preencher os inputs diretamente a partir da posição atual
     for (let i = 0; i < pastedText.length && index + i < targetLength; i++) {
-      newGuess[index + i] = pastedText[i];
+      if (cellRefs.current[index + i]) {
+        cellRefs.current[index + i]!.value = pastedText[i];
+      }
     }
 
-    const finalGuess = newGuess.join("").slice(0, targetLength);
-    setInternalGuess(finalGuess);
+    // Reconstruir o guess baseado nos valores atuais dos inputs após o paste
+    setTimeout(() => {
+      const newGuessArray = [];
+      for (let i = 0; i < targetLength; i++) {
+        if (cellRefs.current[i]) {
+          newGuessArray[i] = cellRefs.current[i]!.value || '';
+        } else {
+          newGuessArray[i] = '';
+        }
+      }
 
-    if (onGuessChange) {
-      onGuessChange(finalGuess);
-    }
+      const finalGuess = newGuessArray.join('');
+      setInternalGuess(finalGuess);
+
+      if (onGuessChange) {
+        onGuessChange(finalGuess);
+      }
+    }, 0);
 
     // Focar na próxima célula disponível após o texto colado
     const nextIndex = Math.min(index + pastedText.length, targetLength - 1);
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       cellRefs.current[nextIndex]?.focus();
-    });
+    }, 10);
   };
 
   const handleCellKeyDown = (index: number, e: React.KeyboardEvent) => {
@@ -147,23 +157,31 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
       }
     } else if (e.key === "Backspace") {
       e.preventDefault();
-      const newGuess = internalGuess.split("");
-
-      if (newGuess[index]) {
+      
+      const currentInput = cellRefs.current[index];
+      if (currentInput && currentInput.value) {
         // Se a célula atual tem conteúdo, apagar
-        newGuess[index] = "";
+        currentInput.value = '';
       } else if (index > 0) {
         // Se a célula atual está vazia, mover para anterior e apagar
-        newGuess[index - 1] = "";
-        cellRefs.current[index - 1]?.focus();
+        const prevInput = cellRefs.current[index - 1];
+        if (prevInput) {
+          prevInput.value = '';
+          prevInput.focus();
+        }
+      }
+      
+      // Reconstruir o guess baseado nos valores atuais dos inputs
+      const newGuessArray = [];
+      for (let i = 0; i < targetLength; i++) {
+        if (cellRefs.current[i]) {
+          newGuessArray[i] = cellRefs.current[i]!.value || '';
+        } else {
+          newGuessArray[i] = '';
+        }
       }
 
-      // Preencher espaços vazios se necessário
-      while (newGuess.length < targetLength) {
-        newGuess.push("");
-      }
-
-      const finalGuess = newGuess.join("").slice(0, targetLength);
+      const finalGuess = newGuessArray.join('');
       setInternalGuess(finalGuess);
 
       if (onGuessChange) {
@@ -171,15 +189,23 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
       }
     } else if (e.key === "Delete") {
       e.preventDefault();
-      const newGuess = internalGuess.split("");
-      newGuess[index] = "";
-
-      // Preencher espaços vazios se necessário
-      while (newGuess.length < targetLength) {
-        newGuess.push("");
+      
+      const currentInput = cellRefs.current[index];
+      if (currentInput) {
+        currentInput.value = '';
       }
 
-      const finalGuess = newGuess.join("").slice(0, targetLength);
+      // Reconstruir o guess baseado nos valores atuais dos inputs
+      const newGuessArray = [];
+      for (let i = 0; i < targetLength; i++) {
+        if (cellRefs.current[i]) {
+          newGuessArray[i] = cellRefs.current[i]!.value || '';
+        } else {
+          newGuessArray[i] = '';
+        }
+      }
+
+      const finalGuess = newGuessArray.join('');
       setInternalGuess(finalGuess);
 
       if (onGuessChange) {
@@ -229,8 +255,6 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
 
       if (isCurrentRow) {
         // Célula editável da linha atual
-        const currentValue = internalGuess[i] || "";
-        
         cells.push(
           <input
             key={`${attemptIndex}-${i}`}
@@ -238,7 +262,7 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
               cellRefs.current[i] = el;
             }}
             type="text"
-            defaultValue={currentValue}
+            defaultValue=""
             onInput={(e) => handleCellInput(i, e)}
             onPaste={(e) => handleCellPaste(i, e)}
             onKeyDown={(e) => handleCellKeyDown(i, e)}
