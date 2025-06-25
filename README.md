@@ -9,9 +9,26 @@ Um jogo inspirado no **Termo** (versão brasileira do Wordle) para adivinhar art
 - 🎨 **Feedback Visual**: Cores indicam se as letras estão corretas, presentes ou ausentes
 - 📅 **Desafio Diário**: Um novo artista todos os dias
 - 🎲 **Modo Prática**: Jogue com artistas aleatórios quantas vezes quiser
+- 🎵 **Modo Música**: Digite um artista e tente adivinhar o nome da música
+- 🎧 **Integração Spotify**: Conecte sua conta do Spotify para jogos personalizados com seus artistas favoritos
 - 💡 **Sistema de Dicas**: Dicas adicionais sobre o artista
 - 📱 **Responsivo**: Funciona perfeitamente em desktop e mobile
 - 📊 **Compartilhamento**: Compartilhe seus resultados nas redes sociais
+
+## 🎧 Integração com Spotify
+
+A integração com Spotify permite que você:
+- 🎯 Jogue com artistas baseados no seu histórico de escuta
+- 📊 Use seus top artistas para desafios personalizados
+- 🔄 Acesse artistas das suas músicas tocadas recentemente
+- 🎪 Tenha uma experiência de jogo mais personalizada
+
+### Como configurar o Spotify:
+
+1. Acesse o [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
+2. Crie uma nova aplicação
+3. Configure a URL de redirecionamento: `http://localhost:3000` (para desenvolvimento)
+4. Anote o `Client ID` e `Client Secret`
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -45,13 +62,24 @@ yarn install
 pnpm install
 ```
 
-3. **Importante**: Adicione os arquivos de áudio
+3. **Importante**: Configure a integração com Spotify (opcional)
+
+   - Copie o arquivo `.env.example` para `.env.local`:
+     ```bash
+     cp .env.example .env.local
+     ```
+   - Acesse o [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
+   - Crie um novo aplicativo
+   - Adicione `http://localhost:3000` como URI de redirecionamento
+   - Copie o Client ID e Client Secret para o arquivo `.env.local`
+
+4. **Importante**: Adicione os arquivos de áudio
 
    - Vá para a pasta `public/audio`
    - Adicione os arquivos MP3 de preview (2 segundos cada)
    - Consulte `public/audio/README.md` para a lista completa
 
-4. Execute o projeto:
+5. Execute o projeto:
 
 ```bash
 npm run dev
@@ -61,7 +89,7 @@ yarn dev
 pnpm dev
 ```
 
-5. Abra [http://localhost:3000](http://localhost:3000) no seu navegador
+6. Abra [http://localhost:3000](http://localhost:3000) no seu navegador
 
 ## 🎵 Adicionando Novos Artistas
 
@@ -96,6 +124,7 @@ public/
 
 ## 🎯 Como Jogar
 
+### 🎤 Modo Artista
 1. **Ouça o Preview**: Clique no botão play para ouvir 2 segundos da música
 2. **Digite sua Tentativa**: Insira o nome do artista (apenas letras e espaços)
 3. **Observe o Feedback**: 
@@ -104,6 +133,11 @@ public/
    - ⬜ Cinza: Letra não existe no nome
 4. **Use as Dicas**: Clique em "Mostrar Dica" se precisar de ajuda
 5. **Compartilhe**: Compartilhe seu resultado ao terminar!
+
+### 🎧 Integração Spotify
+- **Conecte sua conta**: Use o botão "Conectar com Spotify" para personalizar sua experiência
+- **Desafios Personalizados**: Com o Spotify conectado, os desafios diários e modo prática usarão artistas do seu histórico de escuta
+- **Fallback Automático**: Se não conectar ou houver erro, o jogo funciona normalmente com a base de artistas padrão
 
 ## 🏗️ Build para Produção
 

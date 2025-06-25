@@ -4,7 +4,8 @@ import { useState } from 'react';
 import TermoMusical from '@/components/TermoMusical';
 import SongGuessGame from '@/components/SongGuessGame';
 import ThemeToggle from '@/components/ThemeToggle';
-import { getRandomArtist, getDailyArtist } from '@/lib/api-service';
+import SpotifyButton from '@/components/SpotifyButton';
+import { getRandomArtist, getDailyArtist, getDailySpotifyArtist, getRandomSpotifyArtist } from '@/lib/api-service';
 import { Artist, GameMode } from '@/types/game';
 import { Calendar, Shuffle, Music } from 'lucide-react';
 
@@ -13,11 +14,21 @@ export default function Home() {
   const [gameMode, setGameMode] = useState<GameMode>('daily');
   const [currentScreen, setCurrentScreen] = useState<'menu' | 'artist-game' | 'song-game'>('menu');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
 
   const loadArtist = async (mode: 'daily' | 'practice') => {
     setIsLoading(true);
     try {
-      const artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
+      let artist: Artist;
+      
+      if (isSpotifyConnected) {
+        // Usar artistas do Spotify se conectado
+        artist = mode === 'daily' ? await getDailySpotifyArtist() : await getRandomSpotifyArtist();
+      } else {
+        // Usar artistas normais se não conectado
+        artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
+      }
+      
       setCurrentArtist(artist);
     } catch (error) {
       console.error('Error loading artist:', error);
@@ -59,6 +70,26 @@ export default function Home() {
             <p className="text-gray-600 dark:text-gray-400 text-lg">
               Escolha seu modo de jogo!
             </p>
+          </div>
+
+          {/* Spotify Integration */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg text-center">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                🎧 Personalização Spotify
+              </h3>
+              <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
+              {isSpotifyConnected && (
+                <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                    🎯 Modo Personalizado Ativado!
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    Os desafios agora usarão artistas do seu histórico do Spotify
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Game Mode Selection */}

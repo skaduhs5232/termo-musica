@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Artist } from '@/types/game';
+import { spotifyService, SpotifyArtist } from '@/lib/spotify-service';
 
 // Interface para resposta da API do Deezer
 interface DeezerArtist {
@@ -20,6 +21,11 @@ interface DeezerArtist {
 let artistsCache: DeezerArtist[] = [];
 let cacheTimestamp = 0;
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
+
+// Cache para artistas do Spotify do usuário
+let userSpotifyArtistsCache: SpotifyArtist[] = [];
+let spotifyCacheTimestamp = 0;
+const SPOTIFY_CACHE_DURATION = 1000 * 60 * 30; // 30 minutos
 
 async function fetchDeezerArtists(): Promise<DeezerArtist[]> {
   const now = Date.now();
@@ -95,6 +101,25 @@ async function fetchDeezerArtists(): Promise<DeezerArtist[]> {
   }
 }
 
+async function fetchUserSpotifyArtists(): Promise<SpotifyArtist[]> {
+  const now = Date.now();
+  
+  // Verifica se o cache ainda é válido
+  if (userSpotifyArtistsCache.length > 0 && (now - spotifyCacheTimestamp) < SPOTIFY_CACHE_DURATION) {
+    return userSpotifyArtistsCache;
+  }
+
+  try {
+    const artists = await spotifyService.getAllUserArtists();
+    userSpotifyArtistsCache = artists;
+    spotifyCacheTimestamp = now;
+    return artists;
+  } catch (error) {
+    console.error('Erro ao buscar artistas do Spotify:', error);
+    return [];
+  }
+}
+
 function convertDeezerArtistToGameArtist(deezerArtist: DeezerArtist): Artist {
   // Gerar dicas baseadas nas informações disponíveis
   const hints = [
@@ -110,38 +135,103 @@ function convertDeezerArtistToGameArtist(deezerArtist: DeezerArtist): Artist {
   };
 }
 
+function convertSpotifyArtistToGameArtist(spotifyArtist: SpotifyArtist): Artist {
+  return {
+    id: spotifyArtist.id,
+    name: spotifyArtist.name,
+    photo: spotifyArtist.images?.[0]?.url || '/placeholder-artist.jpg',
+    audioPreview: '', // Will be filled by song API
+    hints: [`Gênero: ${spotifyArtist.genres?.[0] || 'Desconhecido'}`, `Popularidade: ${spotifyArtist.popularity}%`]
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'random';
 
-    const deezerArtists = await fetchDeezerArtists();
-    
-    if (deezerArtists.length === 0) {
-      return NextResponse.json(
-        { error: 'Nenhum artista disponível' },
-        { status: 500 }
-      );
-    }
+    let selectedArtist: DeezerArtist | SpotifyArtist;
 
-    let selectedArtist: DeezerArtist;
+    if (type === 'daily-spotify' || type === 'random-spotify') {
+      // Usar apenas artistas do Spotify
+      const spotifyArtists = await fetchUserSpotifyArtists();
+      
+      if (spotifyArtists.length === 0) {
+        // Fallback para Deezer se não há artistas do Spotify
+        const deezerArtists = await fetchDeezerArtists();
+        if (deezerArtists.length === 0) {
+          return NextResponse.json(
+            { error: 'Nenhum artista disponível' },
+            { status: 500 }
+          );
+        }
 
-    if (type === 'daily') {
-      // Para o artista diário, usar a data como seed para consistência
-      const today = new Date();
-      const dayOfYear = Math.floor(
-        (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
-        (1000 * 60 * 60 * 24)
-      );
-      const artistIndex = dayOfYear % deezerArtists.length;
-      selectedArtist = deezerArtists[artistIndex];
+        if (type === 'daily-spotify') {
+          const today = new Date();
+          const dayOfYear = Math.floor(
+            (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
+            (1000 * 60 * 60 * 24)
+          );
+          const artistIndex = dayOfYear % deezerArtists.length;
+          selectedArtist = deezerArtists[artistIndex];
+        } else {
+          const randomIndex = Math.floor(Math.random() * deezerArtists.length);
+          selectedArtist = deezerArtists[randomIndex];
+        }
+      } else {
+        if (type === 'daily-spotify') {
+          const today = new Date();
+          const dayOfYear = Math.floor(
+            (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
+            (1000 * 60 * 60 * 24)
+          );
+          const artistIndex = dayOfYear % spotifyArtists.length;
+          selectedArtist = spotifyArtists[artistIndex];
+        } else {
+          const randomIndex = Math.floor(Math.random() * spotifyArtists.length);
+          selectedArtist = spotifyArtists[randomIndex];
+        }
+      }
     } else {
-      // Para artista aleatório
-      const randomIndex = Math.floor(Math.random() * deezerArtists.length);
-      selectedArtist = deezerArtists[randomIndex];
+      // Lógica original para daily e random (usando Deezer)
+      const deezerArtists = await fetchDeezerArtists();
+      const spotifyArtists = await fetchUserSpotifyArtists();
+      
+      if (deezerArtists.length === 0 && spotifyArtists.length === 0) {
+        return NextResponse.json(
+          { error: 'Nenhum artista disponível' },
+          { status: 500 }
+        );
+      }
+
+      if (type === 'daily') {
+        const today = new Date();
+        const dayOfYear = Math.floor(
+          (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
+          (1000 * 60 * 60 * 24)
+        );
+        const artistIndex = dayOfYear % (deezerArtists.length + spotifyArtists.length);
+        
+        if (artistIndex < deezerArtists.length) {
+          selectedArtist = deezerArtists[artistIndex];
+        } else {
+          selectedArtist = spotifyArtists[artistIndex - deezerArtists.length];
+        }
+      } else {
+        const randomIndex = Math.floor(Math.random() * (deezerArtists.length + spotifyArtists.length));
+        
+        if (randomIndex < deezerArtists.length) {
+          selectedArtist = deezerArtists[randomIndex];
+        } else {
+          selectedArtist = spotifyArtists[randomIndex - deezerArtists.length];
+        }
+      }
     }
 
-    const gameArtist = convertDeezerArtistToGameArtist(selectedArtist);
+    // Determinar se é Deezer ou Spotify baseado nas propriedades
+    const gameArtist = 'picture' in selectedArtist
+      ? convertDeezerArtistToGameArtist(selectedArtist as DeezerArtist)
+      : convertSpotifyArtistToGameArtist(selectedArtist as SpotifyArtist);
 
     return NextResponse.json(gameArtist);
   } catch (error) {
