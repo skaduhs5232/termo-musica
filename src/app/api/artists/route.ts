@@ -153,33 +153,38 @@ export async function GET(request: NextRequest) {
     let selectedArtist: DeezerArtist | SpotifyArtist;
 
     if (type === 'daily-spotify' || type === 'random-spotify') {
-      // Usar apenas artistas do Spotify
+      // Usar APENAS artistas do Spotify para modos Spotify específicos
       const spotifyArtists = await fetchUserSpotifyArtists();
       
       if (spotifyArtists.length === 0) {
-        // Fallback para Deezer se não há artistas do Spotify
-        const deezerArtists = await fetchDeezerArtists();
-        if (deezerArtists.length === 0) {
-          return NextResponse.json(
-            { error: 'Nenhum artista disponível' },
-            { status: 500 }
-          );
-        }
+        return NextResponse.json(
+          { error: 'Nenhum artista do Spotify encontrado. Conecte sua conta e certifique-se de ter histórico de reprodução.' },
+          { status: 404 }
+        );
+      }
 
-        if (type === 'daily-spotify') {
-          const today = new Date();
-          const dayOfYear = Math.floor(
-            (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
-            (1000 * 60 * 60 * 24)
-          );
-          const artistIndex = dayOfYear % deezerArtists.length;
-          selectedArtist = deezerArtists[artistIndex];
-        } else {
-          const randomIndex = Math.floor(Math.random() * deezerArtists.length);
-          selectedArtist = deezerArtists[randomIndex];
-        }
+      if (type === 'daily-spotify') {
+        const today = new Date();
+        const dayOfYear = Math.floor(
+          (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
+          (1000 * 60 * 60 * 24)
+        );
+        const artistIndex = dayOfYear % spotifyArtists.length;
+        selectedArtist = spotifyArtists[artistIndex];
       } else {
-        if (type === 'daily-spotify') {
+        const randomIndex = Math.floor(Math.random() * spotifyArtists.length);
+        selectedArtist = spotifyArtists[randomIndex];
+      }
+    } else {
+      // Para modos padrão (daily e random), priorizar Spotify se disponível, fallback para Deezer
+      const spotifyArtists = await fetchUserSpotifyArtists();
+      const useSpotifyArtists = spotifyArtists.length > 0;
+      
+      if (useSpotifyArtists) {
+        // Usar apenas artistas do Spotify se disponíveis
+        console.log(`🎵 Usando ${spotifyArtists.length} artistas do Spotify para ${type}`);
+        
+        if (type === 'daily') {
           const today = new Date();
           const dayOfYear = Math.floor(
             (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
@@ -191,39 +196,29 @@ export async function GET(request: NextRequest) {
           const randomIndex = Math.floor(Math.random() * spotifyArtists.length);
           selectedArtist = spotifyArtists[randomIndex];
         }
-      }
-    } else {
-      // Lógica original para daily e random (usando Deezer)
-      const deezerArtists = await fetchDeezerArtists();
-      const spotifyArtists = await fetchUserSpotifyArtists();
-      
-      if (deezerArtists.length === 0 && spotifyArtists.length === 0) {
-        return NextResponse.json(
-          { error: 'Nenhum artista disponível' },
-          { status: 500 }
-        );
-      }
-
-      if (type === 'daily') {
-        const today = new Date();
-        const dayOfYear = Math.floor(
-          (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
-          (1000 * 60 * 60 * 24)
-        );
-        const artistIndex = dayOfYear % (deezerArtists.length + spotifyArtists.length);
+      } else {
+        // Fallback para Deezer apenas se não há artistas do Spotify
+        console.log('🎵 Fallback para artistas do Deezer - usuário não conectado ao Spotify');
+        const deezerArtists = await fetchDeezerArtists();
         
-        if (artistIndex < deezerArtists.length) {
+        if (deezerArtists.length === 0) {
+          return NextResponse.json(
+            { error: 'Nenhum artista disponível' },
+            { status: 500 }
+          );
+        }
+
+        if (type === 'daily') {
+          const today = new Date();
+          const dayOfYear = Math.floor(
+            (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 
+            (1000 * 60 * 60 * 24)
+          );
+          const artistIndex = dayOfYear % deezerArtists.length;
           selectedArtist = deezerArtists[artistIndex];
         } else {
-          selectedArtist = spotifyArtists[artistIndex - deezerArtists.length];
-        }
-      } else {
-        const randomIndex = Math.floor(Math.random() * (deezerArtists.length + spotifyArtists.length));
-        
-        if (randomIndex < deezerArtists.length) {
+          const randomIndex = Math.floor(Math.random() * deezerArtists.length);
           selectedArtist = deezerArtists[randomIndex];
-        } else {
-          selectedArtist = spotifyArtists[randomIndex - deezerArtists.length];
         }
       }
     }

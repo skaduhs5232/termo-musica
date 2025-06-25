@@ -6,7 +6,7 @@ import SongGuessGame from '@/components/SongGuessGame';
 import ThemeToggle from '@/components/ThemeToggle';
 import SpotifyButton from '@/components/SpotifyButton';
 import SpotifyConfigAlert from '@/components/SpotifyConfigAlert';
-import { getRandomArtist, getDailyArtist, getDailySpotifyArtist, getRandomSpotifyArtist } from '@/lib/api-service';
+import { getRandomArtist, getDailyArtist } from '@/lib/api-service';
 import { Artist, GameMode } from '@/types/game';
 import { Calendar, Shuffle, Music } from 'lucide-react';
 
@@ -20,16 +20,8 @@ export default function Home() {
   const loadArtist = async (mode: 'daily' | 'practice') => {
     setIsLoading(true);
     try {
-      let artist: Artist;
-      
-      if (isSpotifyConnected) {
-        // Usar artistas do Spotify se conectado
-        artist = mode === 'daily' ? await getDailySpotifyArtist() : await getRandomSpotifyArtist();
-      } else {
-        // Usar artistas normais se não conectado
-        artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
-      }
-      
+      // As funções agora automaticamente detectam se está conectado ao Spotify
+      const artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
       setCurrentArtist(artist);
     } catch (error) {
       console.error('Error loading artist:', error);

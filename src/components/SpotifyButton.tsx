@@ -40,6 +40,9 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
           
           // Tentar buscar informações do usuário
           await fetchUserInfo();
+          
+          // Buscar e exibir artistas do usuário
+          await fetchAndLogUserArtists();
         } else {
           setMessage('Falha na autenticação com o Spotify');
         }
@@ -75,6 +78,43 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
       setUserInfo(user);
     } catch (error) {
       console.error('Erro ao buscar informações do usuário:', error);
+    }
+  };
+
+  const fetchAndLogUserArtists = async () => {
+    try {
+      console.log('🎵 Buscando artistas do usuário...');
+      const artists = await spotifyService.getAllUserArtists();
+      
+      console.log('🎧 ARTISTAS ESCUTADOS PELO USUÁRIO:');
+      console.log('='.repeat(50));
+      
+      artists.forEach((artist, index) => {
+        console.log(`${index + 1}. ${artist.name} (Popularidade: ${artist.popularity}%)`);
+        if (artist.genres && artist.genres.length > 0) {
+          console.log(`   Gêneros: ${artist.genres.slice(0, 3).join(', ')}`);
+        }
+        console.log(`   ID: ${artist.id}`);
+        console.log('---');
+      });
+      
+      console.log(`📊 Total de artistas encontrados: ${artists.length}`);
+      console.log('='.repeat(50));
+      console.log('✅ A partir de agora, os modos "Desafio Diário" e "Modo Prática"');
+      console.log('   usarão APENAS estes artistas do seu histórico do Spotify!');
+      console.log('='.repeat(50));
+      
+      // Salvar no localStorage para uso posterior
+      localStorage.setItem('spotify_user_artists', JSON.stringify(artists));
+      
+      // Mostrar mensagem temporária de sucesso
+      setMessage(`✅ ${artists.length} artistas carregados! Jogos personalizados ativados.`);
+      setTimeout(() => setMessage(''), 5000); // Limpar mensagem após 5 segundos
+      
+    } catch (error) {
+      console.error('Erro ao buscar artistas do usuário:', error);
+      setMessage('⚠️ Erro ao carregar artistas. Tente reconectar.');
+      setTimeout(() => setMessage(''), 5000);
     }
   };
 
@@ -151,7 +191,7 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
               </p>
             )}
             <p className="text-xs text-gray-500 dark:text-gray-500">
-              Jogos personalizados com seus artistas favoritos ativados!
+              Os modos &ldquo;Desafio Diário&rdquo; e &ldquo;Modo Prática&rdquo; agora usam APENAS seus artistas favoritos!
             </p>
             <p className="text-xs text-red-500 dark:text-red-400 mt-2">
               Clique para desconectar
