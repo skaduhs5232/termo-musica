@@ -19,9 +19,22 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const cellRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Sincronizar apenas quando realmente necessário
   useEffect(() => {
-    setInternalGuess(currentGuess);
-  }, [currentGuess]);
+    // Só atualiza quando currentGuess muda externamente (novo jogo, reset, etc)
+    // e não há célula ativa sendo editada
+    if (focusedIndex === null && currentGuess !== internalGuess) {
+      setInternalGuess(currentGuess);
+      
+      // Atualizar os valores dos inputs respeitando as posições
+      const currentArray = currentGuess.split('');
+      for (let i = 0; i < targetLength; i++) {
+        if (cellRefs.current[i]) {
+          cellRefs.current[i]!.value = currentArray[i] || '';
+        }
+      }
+    }
+  }, [currentGuess, focusedIndex, targetLength, internalGuess]);
 
   // Criar array de tentativas preenchido com vazios
   const allAttempts = [...attempts];
@@ -54,11 +67,12 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
     // Se o usuário digitou mais de um caractere, pegar apenas o último
     if (cleanValue.length > 1) {
       value = cleanValue.slice(-1);
-      input.value = value;
     } else {
       value = cleanValue;
-      input.value = value;
     }
+
+    // Força o valor no input para garantir que não seja sobrescrito
+    input.value = value;
 
     const newGuess = internalGuess.split("");
 
@@ -215,6 +229,8 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
 
       if (isCurrentRow) {
         // Célula editável da linha atual
+        const currentValue = internalGuess[i] || "";
+        
         cells.push(
           <input
             key={`${attemptIndex}-${i}`}
@@ -222,7 +238,7 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
               cellRefs.current[i] = el;
             }}
             type="text"
-            value={letter}
+            defaultValue={currentValue}
             onInput={(e) => handleCellInput(i, e)}
             onPaste={(e) => handleCellPaste(i, e)}
             onKeyDown={(e) => handleCellKeyDown(i, e)}
@@ -231,6 +247,7 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
             onBlur={() => setFocusedIndex(null)}
             className={`${cellStyle} ${focusedIndex === i ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-200 dark:ring-blue-800" : "border-blue-400 bg-blue-50 dark:bg-blue-900/20"} text-center text-gray-900 dark:text-gray-100 focus:outline-none cursor-pointer`}
             aria-label={`Posição ${i + 1}`}
+            maxLength={1}
           />
         );
       } else {
