@@ -18,60 +18,64 @@ interface DeezerArtist {
 
 // Mapeamento de países para artistas/termos de busca específicos
 const COUNTRY_SEARCH_TERMS: Record<string, string[]> = {
-  'US': ['american pop', 'american rock', 'american hip hop', 'american country'],
-  'BR': ['brazilian music', 'sertanejo', 'mpb', 'bossa nova', 'funk carioca'],
-  'GB': ['british rock', 'british pop', 'uk garage', 'british indie'],
-  'CA': ['canadian music', 'canadian pop', 'canadian rock'],
-  'AU': ['australian music', 'australian rock', 'australian pop'],
-  'DE': ['german music', 'german pop', 'german rock', 'schlager'],
-  'FR': ['french music', 'french pop', 'chanson française'],
-  'ES': ['spanish music', 'spanish pop', 'flamenco', 'spanish rock'],
-  'IT': ['italian music', 'italian pop', 'italian rock', 'opera'],
-  'SE': ['swedish music', 'swedish pop', 'swedish rock', 'abba'],
-  'NO': ['norwegian music', 'norwegian pop', 'norwegian rock'],
-  'KR': ['k-pop', 'korean music', 'k-rock', 'korean ballad'],
-  'JP': ['j-pop', 'japanese music', 'j-rock', 'japanese ballad'],
-  'MX': ['mexican music', 'mariachi', 'regional mexican', 'mexican pop'],
-  'AR': ['argentine music', 'tango', 'argentine rock', 'argentine pop'],
-  'CO': ['colombian music', 'vallenato', 'colombian pop', 'colombian rock'],
-  'CL': ['chilean music', 'nueva canción', 'chilean rock', 'chilean pop'],
-  'PE': ['peruvian music', 'cumbia peruana', 'peruvian rock'],
-  'NL': ['dutch music', 'dutch pop', 'dutch rock'],
-  'BE': ['belgian music', 'belgian pop'],
-  'CH': ['swiss music'],
-  'AT': ['austrian music'],
-  'DK': ['danish music', 'danish pop'],
-  'FI': ['finnish music', 'finnish rock'],
-  'PL': ['polish music', 'polish pop'],
-  'RU': ['russian music', 'russian pop', 'russian rock'],
-  'IN': ['indian music', 'bollywood', 'indian pop'],
-  'CN': ['chinese music', 'c-pop', 'mandarin pop'],
-  'ZA': ['south african music', 'afrikaans'],
-  'NG': ['nigerian music', 'afrobeat', 'nigerian pop'],
-  'EG': ['arabic music', 'egyptian music'],
-  'TR': ['turkish music', 'turkish pop'],
-  'IL': ['israeli music', 'hebrew music'],
-  'AE': ['arabic music', 'middle eastern music'],
-  'TH': ['thai music', 'thai pop'],
-  'ID': ['indonesian music'],
-  'MY': ['malaysian music'],
-  'SG': ['singaporean music'],
-  'PH': ['filipino music', 'opm'],
-  'VN': ['vietnamese music', 'v-pop'],
+  'US': ['american pop', 'american rock', 'american hip hop', 'american country', 'usa artists', 'american music'],
+  'BR': ['brazilian music', 'sertanejo', 'mpb', 'bossa nova', 'funk carioca', 'brazil artists', 'musica brasileira'],
+  'GB': ['british rock', 'british pop', 'uk garage', 'british indie', 'uk artists', 'british music'],
+  'CA': ['canadian music', 'canadian pop', 'canadian rock', 'canada artists'],
+  'AU': ['australian music', 'australian rock', 'australian pop', 'aussie artists'],
+  'DE': ['german music', 'german pop', 'german rock', 'schlager', 'deutsche musik'],
+  'FR': ['french music', 'french pop', 'chanson française', 'musique française'],
+  'ES': ['spanish music', 'spanish pop', 'flamenco', 'spanish rock', 'musica española'],
+  'IT': ['italian music', 'italian pop', 'italian rock', 'opera', 'musica italiana'],
+  'SE': ['swedish music', 'swedish pop', 'swedish rock', 'svenska artister'],
+  'NO': ['norwegian music', 'norwegian pop', 'norwegian rock', 'norsk musikk'],
+  'KR': ['k-pop', 'korean music', 'k-rock', 'korean ballad', 'kpop artists'],
+  'JP': ['j-pop', 'japanese music', 'j-rock', 'japanese ballad', 'jpop artists'],
+  'MX': ['mexican music', 'mariachi', 'regional mexican', 'mexican pop', 'musica mexicana'],
+  'AR': ['argentine music', 'tango', 'argentine rock', 'argentine pop', 'musica argentina'],
+  'CO': ['colombian music', 'vallenato', 'colombian pop', 'colombian rock', 'musica colombiana'],
+  'CL': ['chilean music', 'nueva canción', 'chilean rock', 'chilean pop', 'musica chilena'],
+  'PE': ['peruvian music', 'cumbia peruana', 'peruvian rock', 'musica peruana'],
+  'NL': ['dutch music', 'dutch pop', 'dutch rock', 'nederlandse muziek'],
+  'BE': ['belgian music', 'belgian pop', 'belgische muziek'],
+  'CH': ['swiss music', 'schweizer musik'],
+  'AT': ['austrian music', 'österreichische musik'],
+  'DK': ['danish music', 'danish pop', 'dansk musik'],
+  'FI': ['finnish music', 'finnish rock', 'suomalainen musiikki'],
+  'PL': ['polish music', 'polish pop', 'polska muzyka'],
+  'RU': ['russian music', 'russian pop', 'russian rock', 'русская музыка'],
+  'IN': ['indian music', 'bollywood', 'indian pop', 'hindi music'],
+  'CN': ['chinese music', 'c-pop', 'mandarin pop', 'chinese artists'],
+  'ZA': ['south african music', 'afrikaans', 'south africa artists'],
+  'NG': ['nigerian music', 'afrobeat', 'nigerian pop', 'naija music'],
+  'EG': ['arabic music', 'egyptian music', 'arab artists'],
+  'TR': ['turkish music', 'turkish pop', 'türk müziği'],
+  'IL': ['israeli music', 'hebrew music', 'israel artists'],
+  'AE': ['arabic music', 'middle eastern music', 'arab pop'],
+  'TH': ['thai music', 'thai pop', 'เพลงไทย'],
+  'ID': ['indonesian music', 'musik indonesia'],
+  'MY': ['malaysian music', 'musik malaysia'],
+  'SG': ['singaporean music', 'singapore artists'],
+  'PH': ['filipino music', 'opm', 'philippine music'],
+  'VN': ['vietnamese music', 'v-pop', 'nhạc việt'],
 };
 
 // Cache para armazenar artistas por um período
-const artistsCache: { [key: string]: DeezerArtist[] } = {};
-let cacheTimestamp = 0;
+const artistsCache: { [key: string]: { artists: DeezerArtist[], timestamp: number } } = {};
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
 
 async function fetchDeezerArtists(countries?: string[]): Promise<DeezerArtist[]> {
   const now = Date.now();
   const cacheKey = countries ? countries.sort().join(',') : 'global';
   
+  // Log para debug
+  console.log('🎵 Buscando artistas para países:', countries || 'todos');
+  
   // Verifica se o cache ainda é válido para esta combinação de países
-  if (artistsCache[cacheKey] && artistsCache[cacheKey].length > 0 && (now - cacheTimestamp) < CACHE_DURATION) {
-    return artistsCache[cacheKey];
+  const cached = artistsCache[cacheKey];
+  if (cached && cached.artists.length > 0 && (now - cached.timestamp) < CACHE_DURATION) {
+    console.log('📦 Usando cache para:', cacheKey, '- Total:', cached.artists.length);
+    return cached.artists;
   }
 
   try {
@@ -81,20 +85,27 @@ async function fetchDeezerArtists(countries?: string[]): Promise<DeezerArtist[]>
     let searchStrategies: Array<{ endpoint?: string; query?: string; limit: number }> = [];
     
     if (countries && countries.length > 0) {
-      // Buscar específico por países
+      // Buscar APENAS específico por países selecionados
+      console.log('🌍 Modo específico por países:', countries);
+      
       countries.forEach(countryCode => {
         const terms = COUNTRY_SEARCH_TERMS[countryCode] || [];
+        console.log(`🏳️ País ${countryCode}: ${terms.length} termos de busca`);
         terms.forEach(term => {
-          searchStrategies.push({ query: term, limit: 10 });
+          searchStrategies.push({ query: term, limit: 15 });
         });
       });
       
-      // Adicionar algumas buscas globais também
-      searchStrategies.push(
-        { endpoint: 'chart/0/artists', limit: 20 },
-        { query: 'pop', limit: 10 },
-        { query: 'rock', limit: 10 }
-      );
+      // Se não encontrou termos específicos para os países, usar termos mais genéricos
+      if (searchStrategies.length === 0) {
+        console.log('⚠️ Nenhum termo específico encontrado, usando termos genéricos');
+        searchStrategies.push(
+          { query: 'popular music', limit: 20 },
+          { query: 'top hits', limit: 15 }
+        );
+      }
+      
+      console.log(`🔍 Total de estratégias de busca: ${searchStrategies.length}`);
     } else {
       // Buscar artistas populares usando diferentes estratégias de busca para garantir diversidade
       searchStrategies = [
@@ -148,11 +159,17 @@ async function fetchDeezerArtists(countries?: string[]): Promise<DeezerArtist[]>
       allArtists.sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
       
       // Usar mais artistas para maior diversidade
-      artistsCache[cacheKey] = allArtists.slice(0, 100);
-      cacheTimestamp = now;
-      return artistsCache[cacheKey];
+      const artistsToCache = allArtists.slice(0, 100);
+      artistsCache[cacheKey] = { artists: artistsToCache, timestamp: now };
+      
+      console.log(`✅ Encontrados ${allArtists.length} artistas para países:`, countries || 'todos');
+      console.log('🎯 Top 5 artistas encontrados:', 
+        allArtists.slice(0, 5).map(a => `${a.name} (${a.nb_fan} fãs)`));
+      
+      return artistsToCache;
     }
     
+    console.log('❌ Nenhum artista encontrado para países:', countries || 'todos');
     throw new Error('No artists found in search results');
   } catch (error) {
     console.error('Error fetching from Deezer API:', error);
@@ -209,6 +226,9 @@ export async function GET(request: NextRequest) {
     }
 
     const gameArtist = convertDeezerArtistToGameArtist(selectedArtist);
+
+    console.log(`🎤 Artista selecionado: ${gameArtist.name} (${selectedArtist.nb_fan} fãs) - Modo: ${type}`);
+    console.log(`🌍 Países solicitados:`, countries || 'todos');
 
     return NextResponse.json(gameArtist);
   } catch (error) {
