@@ -26,6 +26,7 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
 
     const handleSpotifyCallback = async (code: string, state: string) => {
       setIsLoading(true);
+      setMessage('');
       try {
         const success = await spotifyService.exchangeCodeForToken(code, state);
         if (success) {
@@ -39,10 +40,19 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
           
           // Tentar buscar informações do usuário
           await fetchUserInfo();
-        }        } catch (error) {
-          console.error('Erro ao conectar com Spotify:', error);
-          setMessage(error instanceof Error ? error.message : 'Erro ao conectar com Spotify');
-        } finally {
+        } else {
+          setMessage('Falha na autenticação com o Spotify');
+        }
+      } catch (error) {
+        console.error('Erro ao conectar com Spotify:', error);
+        let errorMessage = 'Erro ao conectar com Spotify';
+        
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        
+        setMessage(errorMessage);
+      } finally {
         setIsLoading(false);
       }
     };

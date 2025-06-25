@@ -101,7 +101,17 @@ class SpotifyService {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao obter token');
+        const errorData = await response.json();
+        console.error('Token exchange failed:', errorData);
+        
+        let errorMessage = 'Falha ao obter token';
+        if (errorData.details) {
+          errorMessage += `: ${errorData.details}`;
+        } else if (errorData.error) {
+          errorMessage += `: ${errorData.error}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const { access_token, refresh_token, expires_in } = await response.json();
@@ -119,7 +129,12 @@ class SpotifyService {
       return true;
     } catch (error) {
       console.error('Erro ao trocar código por token:', error);
-      return false;
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      throw new Error('Erro desconhecido ao conectar com Spotify');
     }
   }
 
