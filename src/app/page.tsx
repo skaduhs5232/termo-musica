@@ -61,7 +61,8 @@ export default function Home() {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-end mb-6">
+            <div className="flex justify-end items-center gap-3 mb-6">
+              <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
               <ThemeToggle />
             </div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">
@@ -73,24 +74,18 @@ export default function Home() {
           </div>
 
           {/* Spotify Integration */}
-          <div className="max-w-md mx-auto mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg text-center">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                🎧 Personalização Spotify
-              </h3>
-              <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
-              {isSpotifyConnected && (
-                <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                  <p className="text-sm text-green-700 dark:text-green-300 font-medium">
-                    🎯 Modo Personalizado Ativado!
-                  </p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                    Os desafios agora usarão artistas do seu histórico do Spotify
-                  </p>
-                </div>
-              )}
+          {isSpotifyConnected && (
+            <div className="max-w-md mx-auto mb-8">
+              <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 text-center">
+                <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                  🎯 Modo Personalizado Ativado!
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  Os desafios agora usarão artistas do seu histórico do Spotify
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Game Mode Selection */}
           <div className="max-w-2xl mx-auto space-y-4">
@@ -181,7 +176,8 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-end items-center gap-3 mb-6">
+            <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
             <ThemeToggle />
           </div>
           <SongGuessGame onBack={handleBackToMenu} />
@@ -203,7 +199,8 @@ export default function Home() {
               >
                 ← Voltar ao Menu
               </button>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
                 <ThemeToggle />
               </div>
             </div>

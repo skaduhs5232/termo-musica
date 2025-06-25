@@ -31,11 +31,17 @@ export interface SpotifyTopTracksResponse {
 
 class SpotifyService {
   private get clientId(): string {
-    return process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || '';
+    if (typeof window !== 'undefined') {
+      return process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || '';
+    }
+    return '';
   }
   
   private get redirectUri(): string {
-    return process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI || '';
+    if (typeof window !== 'undefined') {
+      return process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI || '';
+    }
+    return '';
   }
   
   private scopes = [
@@ -63,9 +69,14 @@ class SpotifyService {
   }
 
   public redirectToSpotifyAuth(): void {
+    console.log('Redirecionando para Spotify...');
+    console.log('Client ID:', this.clientId ? 'Configurado' : 'NÃO CONFIGURADO');
+    console.log('Redirect URI:', this.redirectUri ? this.redirectUri : 'NÃO CONFIGURADO');
+    
     if (!this.clientId || !this.redirectUri) {
-      console.error('Credenciais do Spotify não configuradas');
-      return;
+      const errorMsg = 'Credenciais do Spotify não configuradas. Verifique as variáveis de ambiente.';
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
     window.location.href = this.getAuthUrl();
   }

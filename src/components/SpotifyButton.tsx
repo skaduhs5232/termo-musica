@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { spotifyService } from '@/lib/spotify-service';
-import { Music } from 'lucide-react';
+import SpotifyLogo from './SpotifyLogo';
 
 interface SpotifyButtonProps {
   onConnectionChange?: (connected: boolean) => void;
@@ -12,6 +12,8 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userInfo, setUserInfo] = useState<{ display_name?: string } | null>(null);
+
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const checkConnection = () => {
@@ -37,10 +39,10 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
           
           // Tentar buscar informações do usuário
           await fetchUserInfo();
-        }
-      } catch (error) {
-        console.error('Erro ao conectar com Spotify:', error);
-      } finally {
+        }        } catch (error) {
+          console.error('Erro ao conectar com Spotify:', error);
+          setMessage(error instanceof Error ? error.message : 'Erro ao conectar com Spotify');
+        } finally {
         setIsLoading(false);
       }
     };
@@ -72,63 +74,99 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
       spotifyService.logout();
       setIsConnected(false);
       setUserInfo(null);
+      setMessage('');
       if (onConnectionChange) {
         onConnectionChange(false);
       }
     } else {
       // Conectar
       setIsLoading(true);
-      spotifyService.redirectToSpotifyAuth();
+      setMessage('');
+      try {
+        spotifyService.redirectToSpotifyAuth();
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Erro ao conectar');
+        setIsLoading(false);
+      }
     }
   };
 
   if (isLoading) {
     return (
-      <button
-        disabled
-        className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed"
-      >
-        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        Conectando...
-      </button>
+      <div className="relative group">
+        <button
+          disabled
+          className="p-2 bg-green-500 text-white rounded-full cursor-not-allowed opacity-75"
+        >
+          <div className="w-5 h-5 flex items-center justify-center">
+            <SpotifyLogo className="w-4 h-4 animate-pulse" />
+          </div>
+        </button>
+        <div className="spotify-tooltip">
+          <p className="text-xs text-gray-600 dark:text-gray-400 text-center">Conectando ao Spotify...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="relative group">
       <button
         onClick={handleConnect}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+        className={`p-2 rounded-full font-medium transition-all duration-200 relative group-hover:scale-105 ${
           isConnected
-            ? 'bg-red-500 hover:bg-red-600 text-white'
-            : 'bg-green-500 hover:bg-green-600 text-white'
+            ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
+            : 'bg-gray-200 hover:bg-green-500 hover:text-white dark:bg-gray-700 dark:hover:bg-green-500 text-gray-700 dark:text-gray-300 hover:shadow-lg'
         }`}
+        title={isConnected ? 'Desconectar Spotify' : 'Conectar com Spotify'}
       >
-        <Music className="w-5 h-5" />
-        {isConnected ? 'Desconectar Spotify' : 'Conectar com Spotify'}
+        <SpotifyLogo className="w-5 h-5" />
+        {isConnected && (
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-white border-2 border-green-500 rounded-full flex items-center justify-center">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+          </div>
+        )}
       </button>
       
-      {isConnected && (
-        <div className="text-center">
-          <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-            ✅ Conectado ao Spotify
-          </p>
-          {userInfo?.display_name && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Olá, {userInfo.display_name}!
+      {/* Tooltip/Popup */}
+      <div className="spotify-tooltip">
+        {isConnected ? (
+          <div className="text-center">
+            <p className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
+              ✅ Conectado ao Spotify
             </p>
-          )}
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Agora você pode jogar com seus artistas favoritos!
-          </p>
-        </div>
-      )}
-      
-      {!isConnected && (
-        <p className="text-xs text-gray-500 dark:text-gray-500 text-center max-w-xs">
-          Conecte sua conta do Spotify para jogar com artistas baseados no seu histórico de escuta
-        </p>
-      )}
+            {userInfo?.display_name && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                Olá, {userInfo.display_name}!
+              </p>
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              Jogos personalizados com seus artistas favoritos ativados!
+            </p>
+            <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+              Clique para desconectar
+            </p>
+          </div>
+        ) : (
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+              🎧 Conectar Spotify
+            </h4>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+              Conecte sua conta para jogos personalizados com artistas do seu histórico
+            </p>
+            <p className="text-xs text-green-600 dark:text-green-400">
+              Clique para conectar
+            </p>
+          </div>
+        )}
+        
+        {message && (
+          <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/30 rounded text-center">
+            <p className="text-xs text-red-600 dark:text-red-400">{message}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
