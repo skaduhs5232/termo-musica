@@ -34,10 +34,12 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
     }
   }, [currentGuess, targetLength]);
 
-  // Criar array de tentativas preenchido com vazios
+  // Criar array de tentativas - apenas mostrar linhas conforme necessário
   const allAttempts = [...attempts];
-  while (allAttempts.length < maxAttempts) {
-    allAttempts.push({ guess: "", feedback: [] });
+  
+  // Adicionar linha atual se o jogo estiver ativo e ainda não terminou
+  if (isGameActive && attempts.length < maxAttempts) {
+    allAttempts.push({ guess: "", feedback: [] }); // Linha atual para digitar
   }
 
   const getLetterStyle = (status: "correct" | "present" | "absent") => {
@@ -232,16 +234,23 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
   };
 
   const renderAttemptRow = (attempt: Attempt, attemptIndex: number) => {
-    const isCurrentRow = attemptIndex === attempts.length && isGameActive;
+    // Linha atual é quando está no final das tentativas E o jogo está ativo
+    const isCurrentRow = attemptIndex === attempts.length && isGameActive && attemptIndex < maxAttempts;
     const displayGuess = isCurrentRow ? formatGuessForDisplay(internalGuess) : attempt.guess;
 
-    // Calcular tamanho das células baseado no comprimento do título
+    // Calcular tamanho das células baseado no comprimento do título e tamanho da tela
     const isLongTitle = targetLength > 20;
     const isVeryLongTitle = targetLength > 35;
 
-    // Definir quantas células por linha
-    const cellsPerRow = isVeryLongTitle ? 12 : isLongTitle ? 15 : Math.min(targetLength, 12);
-    const cellSize = isVeryLongTitle ? "w-10 h-10 text-sm" : isLongTitle ? "w-12 h-12 text-base" : "w-14 h-14 text-lg";
+    // Definir quantas células por linha e tamanhos adaptativos
+    const cellsPerRow = isVeryLongTitle ? 10 : isLongTitle ? 12 : Math.min(targetLength, 10);
+    
+    // Tamanhos adaptativos para mobile
+    const cellSize = isVeryLongTitle 
+      ? "w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm" 
+      : isLongTitle 
+      ? "w-10 h-10 sm:w-12 sm:h-12 text-sm sm:text-base" 
+      : "w-12 h-12 sm:w-14 sm:h-14 text-base sm:text-lg";
 
     // Criar células para a linha
     const cells = [];
@@ -296,48 +305,73 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
     for (let i = 0; i < cells.length; i += cellsPerRow) {
       const rowCells = cells.slice(i, i + cellsPerRow);
       rows.push(
-        <div key={`${attemptIndex}-row-${Math.floor(i / cellsPerRow)}`} className={`flex justify-center ${isLongTitle ? "gap-1" : "gap-2"} mb-2`} role="row">
+        <div key={`${attemptIndex}-row-${Math.floor(i / cellsPerRow)}`} className={`flex justify-center ${isLongTitle ? "gap-1" : "gap-1 sm:gap-2"} mb-1 sm:mb-2`} role="row">
           {rowCells}
         </div>
       );
     }
 
     return (
-      <div key={attemptIndex} className="mb-4" aria-label={`Tentativa ${attemptIndex + 1}`}>
+      <div key={attemptIndex} className="mb-2 sm:mb-4" aria-label={`Tentativa ${attemptIndex + 1}`}>
         {rows}
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col items-center py-4 overflow-x-auto" role="grid" aria-label="Grade do jogo">
-      <div className="mb-6 text-sm text-gray-600 dark:text-gray-400 text-center">
-        <p className="text-gray-900 dark:text-gray-100 font-medium">{targetLength > 25 ? "Adivinhe o título!" : "Adivinhe o nome do artista!"}</p>
+    <div className="flex flex-col items-center py-2 sm:py-4 overflow-x-auto" role="grid" aria-label="Grade do jogo">
+      <div className="mb-4 sm:mb-6 text-sm text-gray-600 dark:text-gray-400 text-center px-2">
+        <p className="text-gray-900 dark:text-gray-100 font-medium text-sm sm:text-base">{targetLength > 25 ? "Adivinhe o título!" : "Adivinhe o nome do artista!"}</p>
+        
+        {/* Indicador de progresso */}
+        <div className="flex items-center justify-center gap-2 mt-2 mb-2 sm:mb-3">
+          <span className="text-xs sm:text-sm font-medium">Tentativas:</span>
+          <span className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
+            {attempts.length}/{maxAttempts}
+          </span>
+          {attempts.length > 0 && (
+            <div className="flex gap-1 ml-2">
+              {Array.from({ length: maxAttempts }, (_, i) => (
+                <div
+                  key={i}
+                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+                    i < attempts.length
+                      ? 'bg-blue-500'
+                      : i === attempts.length && isGameActive
+                      ? 'bg-blue-300 dark:bg-blue-600'
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {isGameActive && attempts.length < maxAttempts && (
-          <div className="text-xs mt-1 space-y-1">
+          <div className="text-xs mt-1 space-y-1 px-2">
             <p className="text-blue-600 dark:text-blue-400">💡 Clique em qualquer caixa para digitar nela</p>
             <p className="text-green-600 dark:text-green-400">⏎ Pressione Enter para enviar sua tentativa</p>
-            <p className="text-purple-600 dark:text-purple-400">📋 Cole texto para preencher várias células</p>
+            <p className="text-purple-600 dark:text-purple-400 hidden sm:block">📋 Cole texto para preencher várias células</p>
           </div>
         )}
-        <div className="flex justify-center items-center mt-2 gap-4 text-xs">
+        <div className="flex flex-wrap justify-center items-center mt-2 gap-2 sm:gap-4 text-xs">
           <div className="flex items-center">
-            <span className="inline-block w-4 h-4 bg-green-500 rounded mr-1"></span>
-            Posição correta
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded mr-1"></span>
+            <span className="text-xs">Posição correta</span>
           </div>
           <div className="flex items-center">
-            <span className="inline-block w-4 h-4 bg-yellow-500 rounded mr-1"></span>
-            Letra existe
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded mr-1"></span>
+            <span className="text-xs">Letra existe</span>
           </div>
           <div className="flex items-center">
-            <span className="inline-block w-4 h-4 bg-gray-500 rounded mr-1"></span>
-            Não existe
+            <span className="inline-block w-3 h-3 sm:w-4 sm:h-4 bg-gray-500 rounded mr-1"></span>
+            <span className="text-xs">Não existe</span>
           </div>
         </div>
-        {targetLength > 25 && <p className="text-xs mt-2 text-orange-600 dark:text-orange-400">📏 Título longo - células adaptadas para melhor visualização</p>}
+        {targetLength > 25 && <p className="text-xs mt-2 text-orange-600 dark:text-orange-400 px-2">📏 Título longo - células adaptadas para melhor visualização</p>}
       </div>
 
-      <div className={`${targetLength > 35 ? "max-w-full" : targetLength > 20 ? "max-w-4xl" : "max-w-2xl"} w-full px-4`}>{allAttempts.map((attempt, index) => renderAttemptRow(attempt, index))}</div>
+      <div className={`${targetLength > 35 ? "max-w-full" : targetLength > 20 ? "max-w-4xl" : "max-w-2xl"} w-full px-2 sm:px-4`}>{allAttempts.map((attempt, index) => renderAttemptRow(attempt, index))}</div>
     </div>
   );
 }

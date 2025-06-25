@@ -70,76 +70,84 @@ export default function Home() {
 
   if (currentScreen === 'menu') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-4 sm:py-8">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-end mb-6">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex justify-end mb-4 sm:mb-6">
               <ThemeToggle />
             </div>
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-200 mb-2 sm:mb-4">
               🎵 Termo Musical
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
               Escolha seu modo de jogo!
             </p>
           </div>
 
           {/* Game Mode Selection */}
-          <div className="max-w-2xl mx-auto space-y-4">
-            {/* Artist Guessing Games */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
-                🎤 Adivinhe o Artista
-              </h2>
-              <div className="grid md:grid-cols-2 gap-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Layout responsivo para desktop e mobile */}
+            <div className="grid xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-1 gap-4 sm:gap-6">
+              
+              {/* Desafio Diário */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="text-center mb-3 sm:mb-4">
+                  <Calendar className="w-10 sm:w-12 h-10 sm:h-12 text-blue-500 mx-auto mb-2 sm:mb-3" />
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    🗓️ Desafio Diário
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                    Um novo artista todos os dias! Desafie seus amigos com o mesmo artista.
+                  </p>
+                </div>
                 <button
                   onClick={() => handleStartArtistGame('daily')}
                   disabled={isLoading}
-                  className="flex flex-col items-center space-y-3 p-6 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors border-2 border-blue-200 dark:border-blue-700 disabled:opacity-50"
+                  className="w-full py-3 sm:py-4 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors border-2 border-blue-200 dark:border-blue-700 disabled:opacity-50 font-semibold text-blue-700 dark:text-blue-300 text-sm sm:text-base"
                 >
-                  <Calendar className="w-8 h-8 text-blue-500" />
-                  <div className="text-center">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">Desafio Diário</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Um novo artista todos os dias!
-                    </p>
-                  </div>
+                  {isLoading ? 'Carregando...' : 'Iniciar Desafio'}
                 </button>
+              </div>
 
+              {/* Modo Prática */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="text-center mb-3 sm:mb-4">
+                  <Shuffle className="w-10 sm:w-12 h-10 sm:h-12 text-green-500 mx-auto mb-2 sm:mb-3" />
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    🎯 Modo Prática
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                    Pratique quantas vezes quiser com artistas aleatórios!
+                  </p>
+                </div>
                 <button
                   onClick={() => handleStartArtistGame('practice')}
                   disabled={isLoading}
-                  className="flex flex-col items-center space-y-3 p-6 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-lg transition-colors border-2 border-green-200 dark:border-green-700 disabled:opacity-50"
+                  className="w-full py-3 sm:py-4 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-lg transition-colors border-2 border-green-200 dark:border-green-700 disabled:opacity-50 font-semibold text-green-700 dark:text-green-300 text-sm sm:text-base"
                 >
-                  <Shuffle className="w-8 h-8 text-green-500" />
-                  <div className="text-center">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">Modo Prática</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Pratique com artistas aleatórios!
-                    </p>
-                  </div>
+                  {isLoading ? 'Carregando...' : 'Iniciar Prática'}
                 </button>
               </div>
-            </div>
 
-            {/* Song Guessing Game */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
-                🎵 Adivinhe a Música
-              </h2>
-              <button
-                onClick={handleStartSongGame}
-                className="w-full flex flex-col items-center space-y-3 p-6 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg transition-colors border-2 border-purple-200 dark:border-purple-700"
-              >
-                <Music className="w-8 h-8 text-purple-500" />
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-200">Modo Música</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Digite um artista e tente adivinhar a música!
+              {/* Modo Música */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow xl:col-span-1 lg:col-span-2">
+                <div className="text-center mb-3 sm:mb-4">
+                  <Music className="w-10 sm:w-12 h-10 sm:h-12 text-purple-500 mx-auto mb-2 sm:mb-3" />
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    🎵 Modo Música
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                    Digite um artista e adivinhe qual música está tocando!
                   </p>
                 </div>
-              </button>
+                <button
+                  onClick={handleStartSongGame}
+                  className="w-full py-3 sm:py-4 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg transition-colors border-2 border-purple-200 dark:border-purple-700 font-semibold text-purple-700 dark:text-purple-300 text-sm sm:text-base"
+                >
+                  Iniciar Modo Música
+                </button>
+              </div>
             </div>
           </div>
 
@@ -172,9 +180,9 @@ export default function Home() {
 
   if (currentScreen === 'song-game') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-4 sm:py-8">
         <div className="container mx-auto px-4">
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-end mb-4 sm:mb-6">
             <ThemeToggle />
           </div>
           <SongGuessGame onBack={handleBackToMenu} />
@@ -185,14 +193,14 @@ export default function Home() {
 
   if (currentScreen === 'artist-game' && currentArtist) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-4 sm:py-8">
         <div className="container mx-auto px-4">
           {/* Header com botão de voltar e tema */}
-          <div className="text-center mb-8">
-            <div className="flex justify-between items-center mb-6">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
               <button
                 onClick={handleBackToCountrySelector}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg transition-colors text-sm sm:text-base"
               >
                 ← Voltar à Seleção de Países
               </button>
@@ -201,7 +209,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {gameMode === 'daily' ? (
                 <p>🗓️ Desafio Diário - Um novo artista todos os dias!</p>
               ) : (
