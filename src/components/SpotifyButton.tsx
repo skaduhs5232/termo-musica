@@ -25,11 +25,16 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
     };
 
     const handleSpotifyCallback = async (code: string, state: string) => {
+      console.log('🔄 Processando callback do Spotify...');
+      console.log('Código recebido:', code ? 'Presente' : 'Ausente');
+      console.log('Estado recebido:', state);
+      
       setIsLoading(true);
       setMessage('');
       try {
         const success = await spotifyService.exchangeCodeForToken(code, state);
         if (success) {
+          console.log('✅ Autenticação bem-sucedida!');
           setIsConnected(true);
           if (onConnectionChange) {
             onConnectionChange(true);
@@ -68,6 +73,7 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
     const state = urlParams.get('state');
     
     if (code && state) {
+      console.log('🔍 Detectado retorno do Spotify com código de autorização');
       handleSpotifyCallback(code, state);
     }
   }, [onConnectionChange]);
@@ -132,9 +138,15 @@ export default function SpotifyButton({ onConnectionChange }: SpotifyButtonProps
       // Conectar
       setIsLoading(true);
       setMessage('');
+      
+      // Limpar estados antigos antes de conectar (em caso de erro anterior)
+      spotifyService.logout();
+      
       try {
+        console.log('🚀 Iniciando processo de autenticação...');
         spotifyService.redirectToSpotifyAuth();
       } catch (error) {
+        console.error('Erro ao iniciar autenticação:', error);
         setMessage(error instanceof Error ? error.message : 'Erro ao conectar');
         setIsLoading(false);
       }

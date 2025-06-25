@@ -63,8 +63,17 @@ class SpotifyService {
   }
 
   private generateState(): string {
-    const state = Math.random().toString(36).substring(2, 15);
-    Cookies.set('spotify_auth_state', state, { expires: 1 });
+    const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // Usar cookies mais seguros com configurações específicas
+    Cookies.set('spotify_auth_state', state, { 
+      expires: 1/24, // 1 hora
+      secure: window.location.protocol === 'https:',
+      sameSite: 'lax'
+    });
+    // Também salvar no sessionStorage como backup
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('spotify_auth_state', state);
+    }
     return state;
   }
 
@@ -82,11 +91,33 @@ class SpotifyService {
   }
 
   public async exchangeCodeForToken(code: string, state: string): Promise<boolean> {
-    const savedState = Cookies.get('spotify_auth_state');
+    console.log('🔄 Iniciando troca de código por token...');
+    console.log('State recebido:', state);
     
-    if (state !== savedState) {
+    // Verificar estado de múltiplas fontes para maior robustez
+    const savedStateCookie = Cookies.get('spotify_auth_state');
+    const savedStateSession = typeof window !== 'undefined' ? sessionStorage.getItem('spotify_auth_state') : null;
+    
+    console.log('State salvo no cookie:', savedStateCookie);
+    console.log('State salvo na sessão:', savedStateSession);
+    
+    // Verificar se o estado bate com pelo menos uma das fontes
+    if (state !== savedStateCookie && state !== savedStateSession) {
+      console.error('❌ Estado não confere:');
+      console.error('  - Recebido:', state);
+      console.error('  - Cookie:', savedStateCookie);
+      console.error('  - Sessão:', savedStateSession);
+      
+      // Limpar estados inválidos
+      Cookies.remove('spotify_auth_state');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('spotify_auth_state');
+      }
+      
       throw new Error('Estado inválido - possível ataque CSRF');
     }
+
+    console.log('✅ Estado validado com sucesso!');
 
     try {
       const response = await fetch('/api/spotify/token', {
@@ -116,6 +147,8 @@ class SpotifyService {
 
       const { access_token, refresh_token, expires_in } = await response.json();
       
+      console.log('✅ Token obtido com sucesso!');
+      
       // Salvar tokens nos cookies
       const expirationDate = new Date();
       expirationDate.setSeconds(expirationDate.getSeconds() + expires_in);
@@ -123,8 +156,13 @@ class SpotifyService {
       Cookies.set('spotify_access_token', access_token, { expires: expires_in / (24 * 60 * 60) });
       Cookies.set('spotify_refresh_token', refresh_token, { expires: 30 }); // 30 dias
       
-      // Limpar estado
+      // Limpar estados de autenticação
       Cookies.remove('spotify_auth_state');
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('spotify_auth_state');
+      }
+      
+      console.log('🧹 Estados de autenticação limpos');
       
       return true;
     } catch (error) {
@@ -143,8 +181,18 @@ class SpotifyService {
   }
 
   public logout(): void {
+    console.log('🚪 Fazendo logout do Spotify...');
     Cookies.remove('spotify_access_token');
     Cookies.remove('spotify_refresh_token');
+    Cookies.remove('spotify_auth_state');
+    
+    // Limpar também do sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('spotify_auth_state');
+      localStorage.removeItem('spotify_user_artists');
+    }
+    
+    console.log('✅ Logout realizado com sucesso');
   }
 
   private async getAccessToken(): Promise<string | null> {
@@ -339,6 +387,37 @@ class SpotifyService {
     } catch (error) {
       console.error('Erro ao buscar artistas tocados recentemente:', error);
       return [];
+    }
+  }
+
+  // Método para limpar estados órfãos em caso de problemas
+  public clearAuthStates(): void {
+    console.log('🧹 Limpando todos os estados de autenticação...');
+    
+    // Limpar cookies
+    Cookies.remove('spotify_auth_state');
+    Cookies.remove('spotify_access_token'); 
+    Cookies.remove('spotify_refresh_token');
+    
+    // Limpar storage
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('spotify_auth_state');
+      localStorage.removeItem('spotify_user_artists');
+    }
+    
+    console.log('✅ Estados limpos com sucesso');
+  }
+
+  // Método para debug
+  public debugAuthState(): void {
+    console.log('🔍 DEBUG - Estado atual da autenticação:');
+    console.log('Cookie access_token:', Cookies.get('spotify_access_token') ? 'Presente' : 'Ausente');
+    console.log('Cookie refresh_token:', Cookies.get('spotify_refresh_token') ? 'Presente' : 'Ausente');
+    console.log('Cookie auth_state:', Cookies.get('spotify_auth_state'));
+    
+    if (typeof window !== 'undefined') {
+      console.log('Session auth_state:', sessionStorage.getItem('spotify_auth_state'));
+      console.log('LocalStorage user_artists:', localStorage.getItem('spotify_user_artists') ? 'Presente' : 'Ausente');
     }
   }
 }
