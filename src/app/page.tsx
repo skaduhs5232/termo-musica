@@ -5,6 +5,7 @@ import TermoMusical from '@/components/TermoMusical';
 import SongGuessGame from '@/components/SongGuessGame';
 import CountrySelector from '@/components/CountrySelector';
 import ThemeToggle from '@/components/ThemeToggle';
+import FirebaseTest from '@/components/FirebaseTest';
 import { getRandomArtist, getDailyArtist } from '@/lib/api-service';
 import { Artist, GameMode } from '@/types/game';
 import { Calendar, Shuffle, Music } from 'lucide-react';
@@ -227,6 +228,9 @@ export default function Home() {
             />
           )}
         </div>
+        
+        {/* Componente de teste do Firebase (remover em produção) */}
+        <FirebaseTest />
       </div>
     );
   }

@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir leitura e escrita nas estatísticas globais do site
+    match /site-stats/global-stats {
+      allow read, write: if true;
+    }
+    
+    // Permitir apenas criação de registros de visitas (não leitura pública)
+    match /visits/{document} {
+      allow create: if true;
+      allow read: if false; // Não permitir leitura pública por segurança
+    }
+    
+    // Negar acesso a qualquer outra coleção por padrão
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
