@@ -5,7 +5,7 @@ import { Artist, GameState, Attempt } from '@/types/game';
 import { compareGuess, isValidGuess, normalizeArtistName } from '@/lib/game-logic';
 import { Share2, RotateCcw } from 'lucide-react';
 import Image from 'next/image';
-import GameBoard from './GameBoard2';
+import GameBoard from './GameBoard';
 
 interface TermoMusicalProps {
   artist: Artist;
