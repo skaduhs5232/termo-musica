@@ -1,8 +1,13 @@
 import { Artist } from '@/types/game';
 
-export async function getRandomArtist(): Promise<Artist> {
+export async function getRandomArtist(countries?: string[]): Promise<Artist> {
   try {
-    const response = await fetch('/api/artists?type=random');
+    const params = new URLSearchParams({ type: 'random' });
+    if (countries && countries.length > 0) {
+      params.append('countries', countries.join(','));
+    }
+    
+    const response = await fetch(`/api/artists?${params.toString()}`);
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -16,9 +21,14 @@ export async function getRandomArtist(): Promise<Artist> {
   }
 }
 
-export async function getDailyArtist(): Promise<Artist> {
+export async function getDailyArtist(countries?: string[]): Promise<Artist> {
   try {
-    const response = await fetch('/api/artists?type=daily');
+    const params = new URLSearchParams({ type: 'daily' });
+    if (countries && countries.length > 0) {
+      params.append('countries', countries.join(','));
+    }
+    
+    const response = await fetch(`/api/artists?${params.toString()}`);
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import TermoMusical from '@/components/TermoMusical';
 import SongGuessGame from '@/components/SongGuessGame';
+import CountrySelector from '@/components/CountrySelector';
 import ThemeToggle from '@/components/ThemeToggle';
 import { getRandomArtist, getDailyArtist } from '@/lib/api-service';
 import { Artist, GameMode } from '@/types/game';
@@ -11,13 +12,15 @@ import { Calendar, Shuffle, Music } from 'lucide-react';
 export default function Home() {
   const [currentArtist, setCurrentArtist] = useState<Artist | null>(null);
   const [gameMode, setGameMode] = useState<GameMode>('daily');
-  const [currentScreen, setCurrentScreen] = useState<'menu' | 'artist-game' | 'song-game'>('menu');
+  const [currentScreen, setCurrentScreen] = useState<'menu' | 'country-selector' | 'artist-game' | 'song-game'>('menu');
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const [pendingGameMode, setPendingGameMode] = useState<'daily' | 'practice'>('daily');
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadArtist = async (mode: 'daily' | 'practice') => {
+  const loadArtist = async (mode: 'daily' | 'practice', countries?: string[]) => {
     setIsLoading(true);
     try {
-      const artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
+      const artist = mode === 'daily' ? await getDailyArtist(countries) : await getRandomArtist(countries);
       setCurrentArtist(artist);
     } catch (error) {
       console.error('Error loading artist:', error);
@@ -27,8 +30,14 @@ export default function Home() {
   };
 
   const handleStartArtistGame = async (mode: 'daily' | 'practice') => {
-    setGameMode(mode);
-    await loadArtist(mode);
+    setPendingGameMode(mode);
+    setCurrentScreen('country-selector');
+  };
+
+  const handleCountriesSelected = async (countries: string[]) => {
+    setSelectedCountries(countries);
+    setGameMode(pendingGameMode);
+    await loadArtist(pendingGameMode, countries);
     setCurrentScreen('artist-game');
   };
 
@@ -40,9 +49,23 @@ export default function Home() {
   const handleBackToMenu = () => {
     setCurrentScreen('menu');
     setCurrentArtist(null);
+    setSelectedCountries([]);
+  };
+
+  const handleBackToCountrySelector = () => {
+    setCurrentScreen('country-selector');
   };
 
 
+
+  if (currentScreen === 'country-selector') {
+    return (
+      <CountrySelector
+        onCountriesSelected={handleCountriesSelected}
+        onBack={handleBackToMenu}
+      />
+    );
+  }
 
   if (currentScreen === 'menu') {
     return (
@@ -167,10 +190,10 @@ export default function Home() {
           <div className="text-center mb-8">
             <div className="flex justify-between items-center mb-6">
               <button
-                onClick={handleBackToMenu}
+                onClick={handleBackToCountrySelector}
                 className="flex items-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg transition-colors"
               >
-                ← Voltar ao Menu
+                ← Voltar à Seleção de Países
               </button>
               <div className="flex items-center space-x-4">
                 <ThemeToggle />
@@ -200,7 +223,7 @@ export default function Home() {
               onGameEnd={(won, attempts) => {
                 console.log(`Game ended: ${won ? 'Won' : 'Lost'} in ${attempts} attempts`);
               }}
-              onNewGame={gameMode === 'practice' ? () => loadArtist('practice') : undefined}
+              onNewGame={gameMode === 'practice' ? () => loadArtist('practice', selectedCountries) : undefined}
             />
           )}
         </div>

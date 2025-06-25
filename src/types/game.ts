@@ -4,6 +4,8 @@ export interface Artist {
   audioPreview?: string;
   hints?: string[];
   photo?: string;
+  country?: string;
+  genre?: string;
 }
 
 export interface Song {
@@ -40,3 +42,9 @@ export interface LetterFeedback {
 }
 
 export type GameMode = 'daily' | 'practice' | 'song-guess';
+
+export interface Country {
+  code: string;
+  name: string;
+  flag: string;
+}
