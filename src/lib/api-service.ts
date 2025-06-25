@@ -1,17 +1,8 @@
 import { Artist } from '@/types/game';
-import { spotifyService } from './spotify-service';
-
-// Função para verificar se o usuário está conectado ao Spotify
-function isSpotifyConnected(): boolean {
-  if (typeof window === 'undefined') return false;
-  return spotifyService.isAuthenticated();
-}
 
 export async function getRandomArtist(): Promise<Artist> {
   try {
-    // Usar endpoint com Spotify quando conectado
-    const endpoint = isSpotifyConnected() ? '/api/artists?type=random-spotify' : '/api/artists?type=random';
-    const response = await fetch(endpoint);
+    const response = await fetch('/api/artists?type=random');
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -27,9 +18,7 @@ export async function getRandomArtist(): Promise<Artist> {
 
 export async function getDailyArtist(): Promise<Artist> {
   try {
-    // Usar endpoint com Spotify quando conectado
-    const endpoint = isSpotifyConnected() ? '/api/artists?type=daily-spotify' : '/api/artists?type=daily';
-    const response = await fetch(endpoint);
+    const response = await fetch('/api/artists?type=daily');
     
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);

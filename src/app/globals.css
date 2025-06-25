@@ -17,35 +17,3 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Spotify Button Tooltip Styles */
-.spotify-tooltip {
-  @apply absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50;
-  transform: translateY(-10px);
-}
-
-.spotify-tooltip::before {
-  content: '';
-  @apply absolute right-4 -top-1 w-2 h-2 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700 transform rotate-45;
-}
-
-.group:hover .spotify-tooltip {
-  transform: translateY(0);
-}
-
-/* Spotify Brand Colors */
-.spotify-green {
-  background-color: #1DB954;
-}
-
-.spotify-green:hover {
-  background-color: #1ed760;
-}
-
-.spotify-dark {
-  background-color: #191414;
-}

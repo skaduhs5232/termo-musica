@@ -4,8 +4,6 @@ import { useState } from 'react';
 import TermoMusical from '@/components/TermoMusical';
 import SongGuessGame from '@/components/SongGuessGame';
 import ThemeToggle from '@/components/ThemeToggle';
-import SpotifyButton from '@/components/SpotifyButton';
-import SpotifyConfigAlert from '@/components/SpotifyConfigAlert';
 import { getRandomArtist, getDailyArtist } from '@/lib/api-service';
 import { Artist, GameMode } from '@/types/game';
 import { Calendar, Shuffle, Music } from 'lucide-react';
@@ -15,12 +13,10 @@ export default function Home() {
   const [gameMode, setGameMode] = useState<GameMode>('daily');
   const [currentScreen, setCurrentScreen] = useState<'menu' | 'artist-game' | 'song-game'>('menu');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
 
   const loadArtist = async (mode: 'daily' | 'practice') => {
     setIsLoading(true);
     try {
-      // As funções agora automaticamente detectam se está conectado ao Spotify
       const artist = mode === 'daily' ? await getDailyArtist() : await getRandomArtist();
       setCurrentArtist(artist);
     } catch (error) {
@@ -51,12 +47,10 @@ export default function Home() {
   if (currentScreen === 'menu') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
-        <SpotifyConfigAlert />
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-end items-center gap-3 mb-6">
-              <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
+            <div className="flex justify-end mb-6">
               <ThemeToggle />
             </div>
             <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">
@@ -66,20 +60,6 @@ export default function Home() {
               Escolha seu modo de jogo!
             </p>
           </div>
-
-          {/* Spotify Integration */}
-          {isSpotifyConnected && (
-            <div className="max-w-md mx-auto mb-8">
-              <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 text-center">
-                <p className="text-sm text-green-700 dark:text-green-300 font-medium">
-                  🎯 Modo Personalizado Ativado!
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  Os desafios agora usarão artistas do seu histórico do Spotify
-                </p>
-              </div>
-            </div>
-          )}
 
           {/* Game Mode Selection */}
           <div className="max-w-2xl mx-auto space-y-4">
@@ -170,8 +150,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-8">
         <div className="container mx-auto px-4">
-          <div className="flex justify-end items-center gap-3 mb-6">
-            <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
+          <div className="flex justify-end mb-6">
             <ThemeToggle />
           </div>
           <SongGuessGame onBack={handleBackToMenu} />
@@ -193,8 +172,7 @@ export default function Home() {
               >
                 ← Voltar ao Menu
               </button>
-              <div className="flex items-center space-x-3">
-                <SpotifyButton onConnectionChange={setIsSpotifyConnected} />
+              <div className="flex items-center space-x-4">
                 <ThemeToggle />
               </div>
             </div>
