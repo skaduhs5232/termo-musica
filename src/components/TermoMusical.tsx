@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Artist, GameState, Attempt } from '@/types/game';
 import { compareGuess, isValidGuess, normalizeArtistName } from '@/lib/game-logic';
-import GameBoard from './GameBoard';
 import { Share2, RotateCcw } from 'lucide-react';
 import Image from 'next/image';
+import GameBoard from './GameBoard2';
 
 interface TermoMusicalProps {
   artist: Artist;
@@ -38,9 +38,7 @@ export default function TermoMusical({ artist, gameMode, onGameEnd, onNewGame }:
     setShowHint(false);
   }, [artist]);
 
-  const handleGuessSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleGuessSubmit = () => {
     if (gameState.gameStatus !== 'playing') return;
     
     const trimmedGuess = currentGuess.trim();
@@ -228,28 +226,24 @@ export default function TermoMusical({ artist, gameMode, onGameEnd, onNewGame }:
         maxAttempts={gameState.maxAttempts}
         currentGuess={currentGuess}
         targetLength={artist.name.length}
+        onGuessChange={setCurrentGuess}
+        onGuessSubmit={handleGuessSubmit}
+        isGameActive={gameState.gameStatus === 'playing'}
       />
 
-      {/* Input Form */}
-      {gameState.gameStatus === 'playing' && (
-        <form onSubmit={handleGuessSubmit} className="space-y-3">
-          <div>
-            <input
-              type="text"
-              value={currentGuess}
-              onChange={(e) => setCurrentGuess(e.target.value)}
-              placeholder="Digite o nome do artista..."
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-center text-lg font-medium uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              maxLength={Math.max(artist.name.length + 10, 60)}
-            />
-          </div>
+      {/* Submit Button - Show only if game is active, has content and user prefers button over Enter */}
+      {gameState.gameStatus === 'playing' && currentGuess.trim() && (
+        <div className="text-center">
           <button
-            type="submit"
-            className="w-full py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+            onClick={handleGuessSubmit}
+            className="px-8 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
           >
             Enviar Tentativa
           </button>
-        </form>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Ou pressione Enter em qualquer caixa
+          </p>
+        </div>
       )}
 
       {/* Message */}

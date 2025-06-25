@@ -30,47 +30,60 @@ async function fetchDeezerArtists(): Promise<DeezerArtist[]> {
   }
 
   try {
-    // Lista de artistas populares para garantir diversidade e qualidade
-    const popularArtists = [
-      'taylor swift', 'bts', 'adele', 'drake', 'ariana grande',
-      'billie eilish', 'justin bieber', 'dua lipa', 'the weeknd', 'bruno mars',
-      'coldplay', 'imagine dragons', 'maroon 5', 'blackpink', 'eminem',
-      'rihanna', 'beyonce', 'lady gaga', 'katy perry', 'post malone',
-      'shawn mendes', 'harry styles', 'olivia rodrigo', 'doja cat', 'bad bunny',
-      'twice', 'stray kids', 'newjeans', 'seventeen', 'ive',
-      'michael jackson', 'queen', 'the beatles', 'elvis presley', 'madonna',
-      'ed sheeran', 'sam smith', 'john legend', 'alicia keys', 'usher'
-    ];
-
     const allArtists: DeezerArtist[] = [];
     
-    // Buscar por artistas específicos para garantir que encontramos os corretos
-    for (const artistName of popularArtists.slice(0, 20)) { // Limitar para não sobrecarregar
+    // Buscar artistas populares usando diferentes estratégias de busca para garantir diversidade
+    const searchStrategies = [
+      // Top charts globais
+      { endpoint: 'chart/0/artists', limit: 50 },
+      // Buscar por gêneros populares
+      { query: 'pop', limit: 20 },
+      { query: 'rock', limit: 15 },
+      { query: 'hip hop', limit: 15 },
+      { query: 'electronic', limit: 10 },
+      { query: 'r&b', limit: 10 },
+      { query: 'latin', limit: 10 },
+      { query: 'k-pop', limit: 15 },
+      { query: 'country', limit: 10 },
+      { query: 'reggaeton', limit: 10 }
+    ];
+
+    for (const strategy of searchStrategies) {
       try {
-        const response = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(artistName)}&limit=3`);
+        let url: string;
+        
+        if (strategy.endpoint) {
+          // Usar endpoint de charts
+          url = `https://api.deezer.com/${strategy.endpoint}?limit=${strategy.limit}`;
+        } else {
+          // Buscar por gênero/termo
+          url = `https://api.deezer.com/search/artist?q=${encodeURIComponent(strategy.query!)}&limit=${strategy.limit}`;
+        }
+        
+        const response = await fetch(url);
         
         if (response.ok) {
           const data = await response.json();
-          if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-            // Pegar o primeiro resultado (mais relevante) de cada busca
-            const firstResult = data.data[0];
-            // Verificar se é realmente o artista que estamos procurando (não duplicata)
-            if (!allArtists.find(a => a.id === firstResult.id)) {
-              allArtists.push(firstResult);
+          const artists = data.data || [];
+          
+          for (const artist of artists) {
+            // Filtrar apenas artistas com número significativo de fãs (indicador de popularidade)
+            if (artist.nb_fan > 10000 && !allArtists.find(a => a.id === artist.id)) {
+              allArtists.push(artist);
             }
           }
         }
       } catch (err) {
-        console.warn(`Error searching for ${artistName}:`, err);
+        console.warn(`Error with search strategy:`, err);
       }
     }
 
-    // Se conseguimos alguns artistas, usar eles
     if (allArtists.length > 0) {
       // Ordenar por número de fãs para priorizar os mais populares
       allArtists.sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
       
-      artistsCache = allArtists.slice(0, 30); // Limitar a 30 artistas
+      // Usar mais artistas para maior diversidade
+      artistsCache = allArtists.slice(0, 100);
       cacheTimestamp = now;
       return artistsCache;
     }
@@ -78,8 +91,6 @@ async function fetchDeezerArtists(): Promise<DeezerArtist[]> {
     throw new Error('No artists found in search results');
   } catch (error) {
     console.error('Error fetching from Deezer API:', error);
-    
-    // Fallback apenas em caso de erro extremo
     throw new Error('Unable to fetch artists from Deezer API');
   }
 }

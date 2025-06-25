@@ -7,6 +7,7 @@ interface DeezerTrack {
   title_short: string;
   link: string;
   duration: number;
+  rank?: number;
   preview: string;
   artist: {
     id: number;
@@ -24,6 +25,7 @@ interface DeezerTrack {
     cover_medium: string;
     cover_big: string;
     cover_xl: string;
+    release_date?: string;
   };
   type: string;
 }
@@ -86,9 +88,27 @@ async function fetchArtistSongs(artistName: string): Promise<DeezerTrack[]> {
         track.artist.id === targetArtist.id
       );
 
+      // Para cada música, buscar informações detalhadas do álbum se necessário
+      const enhancedSongs = await Promise.all(
+        filteredSongs.slice(0, 20).map(async (track: DeezerTrack) => {
+          try {
+            // Buscar informações detalhadas do álbum para obter a data de lançamento
+            const albumResponse = await fetch(`https://api.deezer.com/album/${track.album.id}`);
+            if (albumResponse.ok) {
+              const albumData = await albumResponse.json();
+              track.album.release_date = albumData.release_date;
+            }
+          } catch (err) {
+            // Se não conseguir buscar dados do álbum, continuar sem a data
+            console.warn(`Could not fetch album data for ${track.album.title}:`, err);
+          }
+          return track;
+        })
+      );
+
       // Armazenar no cache
-      songsCache.set(cacheKey, { songs: filteredSongs, timestamp: now });
-      return filteredSongs;
+      songsCache.set(cacheKey, { songs: enhancedSongs, timestamp: now });
+      return enhancedSongs;
     }
     
     throw new Error('Invalid response format from Deezer API');
@@ -99,14 +119,49 @@ async function fetchArtistSongs(artistName: string): Promise<DeezerTrack[]> {
 }
 
 function convertDeezerTrackToGameSong(track: DeezerTrack): Song {
-  const hints = [
-    `Música do álbum "${track.album.title}"`,
-    `Duração: ${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}`,
-  ];
-
-  // Adicionar dica sobre o ano se disponível
-  if (track.album.title && track.album.title !== track.title) {
-    hints.push(`Álbum diferente do título da música`);
+  const hints = [];
+  
+  // Dica sobre duração
+  const minutes = Math.floor(track.duration / 60);
+  const seconds = track.duration % 60;
+  hints.push(`Duração: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+  
+  // Dica sobre o ano de lançamento do álbum
+  if (track.album.release_date) {
+    const year = track.album.release_date.slice(0, 4);
+    hints.push(`Lançado em ${year}`);
+  } else {
+    // Fallback baseado no ID se não tiver data
+    if (track.id > 2000000000) {
+      hints.push(`Lançado após 2020`);
+    } else if (track.id > 1000000000) {
+      hints.push(`Lançado entre 2010-2020`);
+    } else if (track.id > 100000000) {
+      hints.push(`Lançado entre 2000-2010`);
+    } else {
+      hints.push(`Lançado antes de 2000`);
+    }
+  }
+  
+  // Dica sobre popularidade baseada no rank
+  if (track.rank && track.rank > 800000) {
+    hints.push(`Uma das músicas mais populares do artista`);
+  } else if (track.rank && track.rank > 500000) {
+    hints.push(`Música popular do artista`);
+  } else {
+    hints.push(`Música conhecida pelos fãs`);
+  }
+  
+  // Dica sobre gênero baseado no nome da música
+  const title = track.title.toLowerCase();
+  if (title.includes('love') || title.includes('heart')) {
+    hints.push(`Tema romântico`);
+  } else if (title.includes('party') || title.includes('dance') || title.includes('beat')) {
+    hints.push(`Música para dançar`);
+  } else if (title.includes('sad') || title.includes('cry') || title.includes('hurt')) {
+    hints.push(`Música melancólica`);
+  } else if (title.includes('rock') || title.includes('metal')) {
+    hints.push(`Estilo rock/metal`);
   }
 
   return {

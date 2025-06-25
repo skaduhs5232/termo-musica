@@ -61,7 +61,9 @@ export const compareGuess = (guess: string, target: string): LetterFeedback[] =>
 
 export const isValidGuess = (guess: string): boolean => {
   const normalizedGuess = guess.toUpperCase().trim();
-  return normalizedGuess.length >= 3 && normalizedGuess.length <= 60 && /^[A-Z\s&'(),-]+$/.test(normalizedGuess);
+  // Remover espaços vazios do final para permitir palavras incompletas
+  const cleanGuess = normalizedGuess.replace(/\s+$/, '');
+  return cleanGuess.length >= 1 && cleanGuess.length <= 60 && /^[A-Z\s&'(),-]+$/.test(normalizedGuess);
 };
 
 export const normalizeArtistName = (name: string): string => {
