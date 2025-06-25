@@ -116,13 +116,72 @@ Deve retornar algo como:
 
 ## 📝 Exemplo de Configuração
 
-Para o projeto `termo-musica-v9jb.vercel.app`:
+Para o projeto `termo-musica.vercel.app`:
 
 ```env
 NEXT_PUBLIC_SPOTIFY_CLIENT_ID=553a18acad8b409eb86e943c21a1053f
 SPOTIFY_CLIENT_SECRET=aff595c82592472f8028efccc292ecfd
-NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=https://termo-musica-v9jb.vercel.app/
+NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=https://termo-musica.vercel.app/
 ```
+
+## 🔧 Configuração Específica do Spotify Developer Dashboard
+
+### URLs que devem estar configuradas no Spotify:
+
+1. **Website**: `https://termo-musica.vercel.app`
+2. **Redirect URIs**: 
+   - `https://termo-musica.vercel.app/` (para produção)
+   - `http://localhost:3000/` (para desenvolvimento local)
+
+### ⚠️ Problemas Comuns e Soluções
+
+#### Erro: "INVALID_CLIENT: Invalid redirect URI"
+
+**Causa**: A URL no Spotify Developer Dashboard não confere com a configurada nas variáveis de ambiente.
+
+**Solução**:
+1. Acesse [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
+2. Clique na sua aplicação "Termo Musical"
+3. Clique em "Edit Settings"
+4. Na seção "Redirect URIs", certifique-se de que está **exatamente**:
+   ```
+   https://termo-musica.vercel.app/
+   ```
+5. Salve as alterações
+6. No Vercel, verifique se a variável `NEXT_PUBLIC_SPOTIFY_REDIRECT_URI` está **exatamente**:
+   ```
+   https://termo-musica.vercel.app/
+   ```
+
+#### Erro: CSP (Content Security Policy)
+
+**Causa**: Política de segurança do Spotify.
+
+**Solução**: Esse erro é normal e não afeta o funcionamento. É apenas um aviso de segurança do navegador.
+
+### 🔍 Verificação Passo a Passo
+
+1. **Spotify Dashboard**:
+   - App name: Termo Musical
+   - Website: `https://termo-musica.vercel.app`
+   - Redirect URIs: `https://termo-musica.vercel.app/`
+
+2. **Vercel Environment Variables**:
+   ```
+   NEXT_PUBLIC_SPOTIFY_CLIENT_ID=553a18acad8b409eb86e943c21a1053f
+   SPOTIFY_CLIENT_SECRET=aff595c82592472f8028efccc292ecfd
+   NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=https://termo-musica.vercel.app/
+   ```
+
+3. **Teste**: Acesse `https://termo-musica.vercel.app/api/spotify/debug` e verifique se mostra:
+   ```json
+   {
+     "hasClientId": true,
+     "hasClientSecret": true,
+     "hasRedirectUri": true,
+     "redirectUri": "https://termo-musica.vercel.app/"
+   }
+   ```
 
 ## ⚠️ Importante
 

@@ -27,7 +27,7 @@ A integração com Spotify permite que você:
 
 1. Acesse o [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
 2. Crie uma nova aplicação
-3. Configure a URL de redirecionamento: `http://localhost:3000` (para desenvolvimento)
+3. Configure a URL de redirecionamento: `https://termo-musica.vercel.app/` (para produção) ou `http://localhost:3000/` (para desenvolvimento)
 4. Anote o `Client ID` e `Client Secret`
 
 ## 🚀 Tecnologias Utilizadas
@@ -70,7 +70,7 @@ pnpm install
      ```
    - Acesse o [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)
    - Crie um novo aplicativo
-   - Adicione `http://localhost:3000` como URI de redirecionamento
+   - Adicione `https://termo-musica.vercel.app/` como URI de redirecionamento (e `http://localhost:3000/` para desenvolvimento local)
    - Copie o Client ID e Client Secret para o arquivo `.env.local`
 
 4. **Importante**: Adicione os arquivos de áudio
