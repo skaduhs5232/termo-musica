@@ -4,7 +4,6 @@ Um jogo inspirado no **Termo** (versão brasileira do Wordle) para adivinhar art
 
 ## ✨ Funcionalidades
 
-- 🎧 **Preview de Áudio**: Ouça 2 segundos de uma música do artista
 - 🎯 **Sistema de Tentativas**: Até 6 tentativas para acertar
 - 🎨 **Feedback Visual**: Cores indicam se as letras estão corretas, presentes ou ausentes
 - 📅 **Desafio Diário**: Um novo artista todos os dias
