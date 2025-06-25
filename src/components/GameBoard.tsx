@@ -12,9 +12,10 @@ interface GameBoardProps {
   onGuessChange?: (guess: string) => void;
   onGuessSubmit?: () => void;
   isGameActive?: boolean;
+  focusOnFirstCell?: boolean;
 }
 
-export default function GameBoard({ attempts, maxAttempts, currentGuess, targetLength, onGuessChange, onGuessSubmit, isGameActive = true }: GameBoardProps) {
+export default function GameBoard({ attempts, maxAttempts, currentGuess, targetLength, onGuessChange, onGuessSubmit, isGameActive = true, focusOnFirstCell = false }: GameBoardProps) {
   const [internalGuess, setInternalGuess] = useState(currentGuess);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const cellRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -33,6 +34,15 @@ export default function GameBoard({ attempts, maxAttempts, currentGuess, targetL
       }
     }
   }, [currentGuess, targetLength]);
+
+  // Focar na primeira célula quando solicitado
+  useEffect(() => {
+    if (focusOnFirstCell && isGameActive && cellRefs.current[0]) {
+      setTimeout(() => {
+        cellRefs.current[0]?.focus();
+      }, 100);
+    }
+  }, [focusOnFirstCell, isGameActive]);
 
   // Criar array de tentativas - apenas mostrar linhas conforme necessário
   const allAttempts = [...attempts];
