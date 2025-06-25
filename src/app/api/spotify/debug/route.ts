@@ -10,6 +10,10 @@ export async function GET() {
     hasClientSecret: !!clientSecret,
     hasRedirectUri: !!redirectUri,
     clientIdLength: clientId?.length || 0,
-    redirectUri: redirectUri || 'not set'
+    clientSecretLength: clientSecret?.length || 0,
+    redirectUri: redirectUri || 'not set',
+    environment: process.env.NODE_ENV || 'unknown',
+    vercelEnv: process.env.VERCEL_ENV || 'not vercel',
+    timestamp: new Date().toISOString()
   });
 }
